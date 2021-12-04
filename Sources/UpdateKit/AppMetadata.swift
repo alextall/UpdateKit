@@ -1,11 +1,19 @@
 import Foundation
 
-struct AppMetadata: Codable {
+struct AppMetadata: Decodable {
     let trackViewURL: URL
-    let version: String
+    var version: Version? {
+        try? Version(string: versionString)
+    }
+    private let versionString: String
+
+    enum CodingKeys: String, CodingKey {
+        case trackViewURL
+        case versionString = "version"
+    }
 }
 
-struct AppMetadataResults: Codable {
+struct AppMetadataResults: Decodable {
     let resultCount: Int
     let results: [AppMetadata]
 }

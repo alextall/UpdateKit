@@ -2,50 +2,49 @@ import Foundation
 
 public struct Version {
     /// The major version according to the semantic versioning standard.
-    let major: Int
+    public let major: Int
     /// The minor version according to the semantic versioning standard.
-    let minor: Int
+    public let minor: Int
     /// The patch version according to the semantic versioning standard.
-    let patch: Int
+    public let patch: Int
+
+    public init(major: Int, minor: Int, patch: Int) {
+        precondition(major >= 0 && minor >= 0 && patch >= 0, "Negative versioning is invalid.")
+
+        self.major = major
+        self.minor = minor
+        self.patch = patch
+    }
 }
 
 extension Version {
-    public enum Error: Swift.Error {
+    enum Error: Swift.Error {
         case unableToParseString
     }
 
     init(string: String) throws {
+        guard !string.isEmpty else { throw Error.unableToParseString }
+
         let components = string.components(separatedBy: ".")
 
         guard components.count <= 3 else { throw Error.unableToParseString }
 
-        if let majorString = components.first, let majorInt = Int(majorString) {
-            self.major = majorInt
-        } else { throw Error.unableToParseString }
+        let intComponents = components.compactMap(Int.init)
 
-        if let minorString = components.dropFirst().first, let minorInt = Int(minorString) {
-            self.minor = minorInt
-        } else { self.minor = 0 }
+        guard let major = intComponents.first else { throw Error.unableToParseString }
 
-        if let patchString = components.dropFirst(2).first, let patchInt = Int(patchString) {
-            self.patch = patchInt
-        } else { self.patch = 0 }
+        self.major = major
+        self.minor = intComponents.dropFirst().first ?? 0
+        self.patch = intComponents.dropFirst(2).first ?? 0
     }
+
+    static var zero: Version { Version(major: 0, minor: 0, patch: 0) }
 }
 
-extension Version: Equatable {
-    public static func == (lhs: Self, rhs: Self) -> Bool {
-        lhs.major == rhs.major
-        && lhs.minor == rhs.minor
-        && lhs.patch == rhs.patch
-    }
-}
+extension Version: Equatable {}
 
 extension Version: Comparable {
-    // FIXME probably
     public static func < (lhs: Version, rhs: Version) -> Bool {
-        lhs.major < rhs.major
-        || lhs.minor < rhs.minor
-        || lhs.patch < rhs.patch
+        [lhs.major, lhs.minor, lhs.patch].lexicographicallyPrecedes([rhs.major, rhs.minor, rhs.patch])
     }
 }

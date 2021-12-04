@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import HTTPClient
 
@@ -29,11 +30,11 @@ public final class UpdateService {
         check()
     }
 
-    var currentVersionProvider: () throws -> String = {
+    var currentVersionProvider: () throws -> Version = {
         guard let versionString = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String else {
             throw Error.missingCFBundleShortVersionString
         }
-        return versionString
+        return try Version(string: versionString)
     }
 
     private let httpClient: AppStoreClient
@@ -54,7 +55,7 @@ public extension UpdateService {
                 return result
             }
             .tryMap(updateStatus(for:))
-            .assertNoFailure()
+            .catch { Just(.error($0)) }
             .assign(to: &$status)
     }
 }
@@ -62,12 +63,12 @@ public extension UpdateService {
 private extension UpdateService {
     func updateStatus(for metadata: AppMetadata) throws -> UpdateStatus {
         let currentVersion = try currentVersionProvider()
-
-        switch currentVersion.compare(metadata.version) {
-        case .orderedSame, .orderedDescending:
-            return .upToDate
-        case .orderedAscending:
-            return .updateAvailable(version: metadata.version, storeURL: metadata.trackViewURL)
+        guard let storeVersion = metadata.version else {
+            throw UpdateService.Error.bundleIdNotFoundInAppStore
         }
+
+        return (currentVersion >= storeVersion)
+            ? .upToDate
+            : .updateAvailable(version: storeVersion, storeURL: metadata.trackViewURL)
     }
 }
