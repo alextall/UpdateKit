@@ -6,7 +6,7 @@ final class AppStoreClient: HTTPClient {
     var session: URLSession
     var baseURL: URL
 
-    init(baseURL: URL = URL(string: "https://itunes.apple.com/us/lookup?bundleId=")!,
+    init(baseURL: URL = URL(string: "https://itunes.apple.com/" + "\(Locale.current.regionCode?.lowercased() ?? "us")" + "/lookup?bundleId=")!,
          session: URLSession = .shared) {
         self.baseURL = baseURL
         self.session = session

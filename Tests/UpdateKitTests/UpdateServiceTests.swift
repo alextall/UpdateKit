@@ -10,7 +10,7 @@ final class UpdateServiceTests: XCTestCase {
     override func setUpWithError() throws {
         appStoreClient = AppStoreClient()
         service = try UpdateService(bundleId: bundleId, httpClient: appStoreClient)
-        service.currentVersionProvider = { "1.0.0" }
+        service.currentVersionProvider = { Version(major: 1, minor: 0, patch: 0) }
     }
 
     override func tearDownWithError() throws {

@@ -13,7 +13,7 @@ struct AppMetadata: Decodable {
     }
 }
 
-struct AppMetadataResults: Decodable {
+struct AppMetadataResponse: Decodable {
     let resultCount: Int
     let results: [AppMetadata]
 }

@@ -5,6 +5,8 @@ import HTTPClient
 /// Checks for updates from the AppStore.
 public final class UpdateService {
 
+    // MARK: - Public
+
     /// Most recent available update status
     @Published
     public private(set) var status: UpdateStatus = .upToDate
@@ -19,9 +21,11 @@ public final class UpdateService {
         try self.init(bundleId: bundleId, httpClient: .init())
     }
 
+    // MARK: - Internal
+
     init(bundleId: String?, httpClient: AppStoreClient) throws {
         guard let bundleId = bundleId else {
-            throw UpdateService.Error.missingBundleIdentifier
+            throw Error.missingBundleIdentifier
         }
 
         self.httpClient = httpClient
@@ -37,6 +41,8 @@ public final class UpdateService {
         return try Version(string: versionString)
     }
 
+    // MARK: - Private
+
     private let httpClient: AppStoreClient
     private let bundleId: String
 }
@@ -45,10 +51,10 @@ public extension UpdateService {
     func check() {
         httpClient.getAppMetadata(bundleId: bundleId)
             .map(\.data)
-            .decode(type: AppMetadataResults.self, decoder: JSONDecoder())
-            .tryCompactMap { results -> AppMetadata? in
-                guard results.resultCount == 1,
-                    let result = results.results.first else {
+            .decode(type: AppMetadataResponse.self, decoder: JSONDecoder())
+            .tryCompactMap { response -> AppMetadata? in
+                guard response.resultCount == 1,
+                    let result = response.results.first else {
                     throw Error.bundleIdNotFoundInAppStore
                 }
 
@@ -64,7 +70,7 @@ private extension UpdateService {
     func updateStatus(for metadata: AppMetadata) throws -> UpdateStatus {
         let currentVersion = try currentVersionProvider()
         guard let storeVersion = metadata.version else {
-            throw UpdateService.Error.bundleIdNotFoundInAppStore
+            throw Error.bundleIdNotFoundInAppStore
         }
 
         return (currentVersion >= storeVersion)

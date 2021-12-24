@@ -17,7 +17,7 @@ let package = Package(
     dependencies: [
         .package(name: "DataKit",
                  url: "https://github.com/alextall/DataKit.git",
-                    .upToNextMajor(from: .init(0, 5, 0))),
+                 .upToNextMajor(from: .init(0, 5, 0))),
     ],
     targets: [
         .target(
